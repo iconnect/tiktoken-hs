@@ -18,7 +18,8 @@ common warnings
 
 library
     import:           warnings
-    exposed-modules:  MyLib
+    exposed-modules:
+      Data.Tokenizer.BPE
     -- other-modules:
     -- other-extensions:
     build-depends:
@@ -26,6 +27,8 @@ library
       , foreign-rust >= 0.1
     hs-source-dirs:   src
     default-language: GHC2021
+    build-tool-depends: c2hs:c2hs
+    pkgconfig-depends: tiktoken_rs_hs_wrapper-uninstalled
 
 test-suite tiktoken-hs-test
     import:           warnings
@@ -36,5 +39,8 @@ test-suite tiktoken-hs-test
     hs-source-dirs:   test
     main-is:          Main.hs
     build-depends:
-        base ^>=4.14.3.0,
-        tiktoken-hs
+          base >=4.14.3.0 && <5
+        , hspec < 2.12
+        , QuickCheck < 2.15
+        , tiktoken-hs
+    pkgconfig-depends: tiktoken_rs_hs_wrapper-uninstalled

@@ -3,3 +3,4 @@ tags
 dist-newstyle
 .DS_Store
 .vim
+tiktoken-rs-hs-wrapper/target
