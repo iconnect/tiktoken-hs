@@ -1,40 +1,37 @@
 cabal-version:      3.0
 name:               tiktoken-hs
 version:            0.1.0.0
-synopsis:           Haskell bindings to the Rust tiktoken library
--- description:
+synopsis:           Haskell bindings to a very limited subset of the Rust tiktoken library
 license:            BSD-3-Clause
 license-file:       LICENSE
 author:             Alfredo Di Napoli
 maintainer:         alfredo@well-typed.com
--- copyright:
 category:           Data
-build-type:         Simple
+build-type:         Custom
 extra-doc-files:    CHANGELOG.md
--- extra-source-files:
 
-common warnings
+common lang
     ghc-options: -Wall
+    default-language: GHC2021
+    pkgconfig-depends: tiktoken_rs_hs_wrapper-uninstalled
+
+custom-setup
+  setup-depends:
+      base
+    , Cabal
 
 library
-    import:           warnings
+    import:           lang
     exposed-modules:
       Data.Tokenizer.BPE
-    -- other-modules:
-    -- other-extensions:
     build-depends:
         base         >= 4.14.3.0 && <5
       , foreign-rust >= 0.1
     hs-source-dirs:   src
-    default-language: GHC2021
     build-tool-depends: c2hs:c2hs
-    pkgconfig-depends: tiktoken_rs_hs_wrapper-uninstalled
 
 test-suite tiktoken-hs-test
-    import:           warnings
-    default-language: GHC2021
-    -- other-modules:
-    -- other-extensions:
+    import:           lang
     type:             exitcode-stdio-1.0
     hs-source-dirs:   test
     main-is:          Main.hs
@@ -43,4 +40,3 @@ test-suite tiktoken-hs-test
         , hspec < 2.12
         , QuickCheck < 2.15
         , tiktoken-hs
-    pkgconfig-depends: tiktoken_rs_hs_wrapper-uninstalled
