@@ -10,6 +10,8 @@ category:           Data
 build-type:         Custom
 extra-doc-files:    CHANGELOG.md
 
+data-files: test-data/aws_transcribe.vtt
+
 common lang
     ghc-options: -Wall
     default-language: GHC2021
@@ -24,6 +26,8 @@ library
     import:           lang
     exposed-modules:
       Data.Tokenizer.BPE
+    other-modules:
+      Paths_tiktoken_hs
     build-depends:
         base         >= 4.14.3.0 && <5
       , foreign-rust >= 0.1
@@ -39,5 +43,7 @@ test-suite tiktoken-hs-test
     build-depends:
           base >=4.14.3.0 && <5
         , hspec < 2.12
-        , QuickCheck < 2.15
         , tiktoken-hs
+        , text
+    other-modules:
+      Paths_tiktoken_hs
