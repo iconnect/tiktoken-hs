@@ -3,5 +3,5 @@ tests: true
 
 source-repository-package
     type: git
-    location: git@github.com:BeFunctional/haskell-foreign-rust.git
+    location: https://github.com/BeFunctional/haskell-foreign-rust.git
     tag: 90b1c210ae4e753c39481a5f3b141b74e6b6d96e

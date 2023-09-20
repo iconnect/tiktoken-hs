@@ -13,7 +13,7 @@ extra-doc-files:    CHANGELOG.md
 common lang
     ghc-options: -Wall
     default-language: GHC2021
-    pkgconfig-depends: tiktoken_rs_hs_wrapper-uninstalled
+    extra-libraries: tiktoken_rs_hs_wrapper
 
 custom-setup
   setup-depends:

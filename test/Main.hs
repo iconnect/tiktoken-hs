@@ -1,8 +1,6 @@
 module Main (main) where
 
 import Test.Hspec
-import Test.QuickCheck
-import Control.Exception (evaluate)
 
 import Data.Tokenizer.BPE
 
