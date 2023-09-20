@@ -102,6 +102,10 @@ main = do
         confFlags' <- extendConfigFlags confFlags
         confHook origUserHooks (genPkgDescription, hookedBuildInfo) confFlags'
 
+    , buildHook = \packageDesc localBuildInfo userHooks buildFlags -> do
+        buildRustWrapper (configFlags localBuildInfo)
+        buildHook origUserHooks packageDesc localBuildInfo userHooks buildFlags
+
     -- Ensures that the built wrapper library is available both at
     -- LD_LIBRARY_PATH and DYLD_LIBRARY_PATH. Re-builds the Rust library.
     , testHook = \args packageDesc localBuildInfo userHooks testFlags -> do

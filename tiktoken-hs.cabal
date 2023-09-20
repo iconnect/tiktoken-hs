@@ -27,6 +27,7 @@ library
     build-depends:
         base         >= 4.14.3.0 && <5
       , foreign-rust >= 0.1
+      , text
     hs-source-dirs:   src
     build-tool-depends: c2hs:c2hs
 
