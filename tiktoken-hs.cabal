@@ -2,6 +2,7 @@ cabal-version:      3.0
 name:               tiktoken-hs
 version:            0.1.0.0
 synopsis:           Haskell bindings to a very limited subset of the Rust tiktoken library
+description:        Haskell bindings to a very limited subset of the Rust tiktoken library, mostly for counting tokens.
 license:            BSD-3-Clause
 license-file:       LICENSE
 author:             Alfredo Di Napoli
@@ -12,15 +13,19 @@ extra-doc-files:    CHANGELOG.md
 
 data-files: test-data/aws_transcribe.vtt
 
+Source-repository head
+    type: git
+    location: https://github.com/iconnect/tiktoken-hs
+
 common lang
     ghc-options: -Wall
-    default-language: GHC2021
+    default-language: Haskell2010
     extra-libraries: tiktoken_rs_hs_wrapper
 
 custom-setup
   setup-depends:
-      base
-    , Cabal
+      base < 5
+    , Cabal < 3.11
 
 library
     import:           lang
@@ -28,10 +33,12 @@ library
       Data.Tokenizer.BPE
     other-modules:
       Paths_tiktoken_hs
+    autogen-modules:
+      Paths_tiktoken_hs
     build-depends:
         base         >= 4.14.3.0 && <5
-      , foreign-rust >= 0.1
-      , text
+      , foreign-rust >= 0.1 && < 0.2
+      , text         < 2.2
     hs-source-dirs:   src
     build-tool-depends: c2hs:c2hs
 
