@@ -18,3 +18,6 @@ main = hspec $ do
     it "returns the correct number of tokens for transcripts" $ do
       vtt <- TIO.readFile =<< getDataFileName "test-data/aws_transcribe.vtt"
       BPE.countTokens vtt `shouldBe` 7113
+    it "splits token correctly" $ do
+      BPE.splitByToken "This is a test         with a lot of spaces"
+        `shouldBe` ["This", " is", " a", " test", "        ", " with", " a", " lot", " of", " spaces"]
