@@ -5,3 +5,4 @@ dist-newstyle
 .vim
 tiktoken-rs-hs-wrapper/target
 cabal.project.local
+cabal.project.freeze
