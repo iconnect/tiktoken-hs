@@ -11,7 +11,12 @@ category:           Data
 build-type:         Custom
 extra-doc-files:    CHANGELOG.md
 
-data-files: test-data/aws_transcribe.vtt
+data-files:
+  test-data/aws_transcribe.vtt
+  tiktoken-rs-hs-wrapper/Cargo.lock
+  tiktoken-rs-hs-wrapper/Cargo.toml
+  tiktoken-rs-hs-wrapper/cbindgen.toml
+  tiktoken-rs-hs-wrapper/src/lib.rs
 
 Source-repository head
     type: git
@@ -26,6 +31,7 @@ custom-setup
   setup-depends:
       base < 5
     , Cabal < 3.11
+    , directory
 
 library
     import:           lang
