@@ -47,18 +47,21 @@ withConfiguredProgram confFlags pgm act = do
   (foundPgm, _) <- requireProgram verbosity pgm (configPrograms confFlags)
   act foundPgm
 
-withRustPath :: ConfigFlags -> BuildDir -> (String -> IO a) -> IO a
-withRustPath confFlags bdir withPath = do
+withRustPath :: LocalBuildInfo -> (String -> IO a) -> IO a
+withRustPath lbi withPath = do
   withConfiguredProgram confFlags rustcProgram $ \rustc -> do
     (RustTargetHost hostTarget) <- getRustHostTarget rustc
-    pth <- rustArtifactsPath bdir
+    pth <- rustArtifactsPath lbi
     withPath $ pth <> "/" <> hostTarget <> "/debug"
+  where
+    confFlags = configFlags lbi
 
 addRustPaths :: LocalBuildInfo -> IO ()
 addRustPaths lbi = do
-  withRustPath confFlags bdir $ \rustPath -> do
+  withRustPath lbi $ \rustPath -> do
    addToPath "LD_LIBRARY_PATH" rustPath
    addToPath "DYLD_LIBRARY_PATH" rustPath
+   addToPath "PKG_CONFIG_PATH" rustPath
   where
     addToPath :: String -> String -> IO ()
     addToPath pathVar path = do
@@ -66,17 +69,16 @@ addRustPaths lbi = do
       setEnv pathVar (path ++ either (const "") (":" ++) v)
 
     confFlags = configFlags lbi
-    bdir      = BuildDir $ buildDir lbi
 
-rustArtifactsPath :: BuildDir -> IO FilePath
-rustArtifactsPath (BuildDir relativeBuildDir) = do
-  absoluteBuildDir <- canonicalizePath relativeBuildDir
+rustArtifactsPath :: LocalBuildInfo -> IO FilePath
+rustArtifactsPath lbi = do
+  absoluteBuildDir <- canonicalizePath (buildDir lbi)
   pure $ absoluteBuildDir <> "/rust"
 
-buildRustWrapper :: ConfigFlags -> BuildDir -> IO ()
-buildRustWrapper confFlags bdir = withConfiguredProgram confFlags cargoProgram $ \cargo -> do
+buildRustWrapper :: LocalBuildInfo -> IO ()
+buildRustWrapper lbi = withConfiguredProgram confFlags cargoProgram $ \cargo -> do
   let verbosity = fromFlag $ configVerbosity confFlags
-  pth <- rustArtifactsPath bdir
+  pth <- rustArtifactsPath lbi
   void $ getProgramOutput verbose cargo
     ["+nightly"
     , "-v"
@@ -88,16 +90,17 @@ buildRustWrapper confFlags bdir = withConfiguredProgram confFlags cargoProgram $
     , "--target-dir"
     , pth
     ] `onException` (putStrLn "Make sure to install the rust nightly (\"rustup install nightly\") and the c-cargo applet (\"cargo install cargo-c\").")
+  where
+    confFlags = configFlags lbi
 
 extendConfigFlags :: LocalBuildInfo -> IO ConfigFlags
 extendConfigFlags lbi = do
-  withRustPath confFlags bdir $ \rustPath -> do
+  withRustPath lbi $ \rustPath -> do
     pure $ confFlags {
            configExtraLibDirs     = rustPath : (configExtraLibDirs confFlags)
          , configExtraIncludeDirs = rustPath : (configExtraIncludeDirs confFlags)
          }
   where
-    bdir      = BuildDir $ buildDir lbi
     confFlags = configFlags lbi
 
 main :: IO ()
@@ -107,27 +110,23 @@ main = do
   defaultMainWithHooks origUserHooks {
       hookedPrograms = [ cargoProgram, rustcProgram ]
 
-    -- Build the Rust wrapper library.
-    --, preConf = \args confFlags -> do
-    --    buildRustWrapper confFlags (BuildDir $ fromFlag (configDistPref confFlags) <> "/build")
-    --    preConf origUserHooks args confFlags
-
     -- Ensures the built library path is available for the configure script
     -- to pick it up, for foreign dependency resolution.
     , confHook = \(genPkgDescription, hookedBuildInfo) confFlags -> do
         lb0 <- confHook origUserHooks (genPkgDescription, hookedBuildInfo) confFlags
         confFlags' <- extendConfigFlags lb0
-        buildRustWrapper confFlags' (BuildDir $ buildDir lb0)
+        buildRustWrapper (lb0 { configFlags = confFlags' })
         confHook origUserHooks (genPkgDescription, hookedBuildInfo) confFlags'
 
     , buildHook = \packageDesc localBuildInfo userHooks buildFlags -> do
-        buildRustWrapper (configFlags localBuildInfo) (BuildDir $ buildDir localBuildInfo)
+        buildRustWrapper localBuildInfo
+        addRustPaths localBuildInfo
         buildHook origUserHooks packageDesc localBuildInfo userHooks buildFlags
 
     -- Ensures that the built wrapper library is available both at
     -- LD_LIBRARY_PATH and DYLD_LIBRARY_PATH. Re-builds the Rust library.
     , testHook = \args packageDesc localBuildInfo userHooks testFlags -> do
-        buildRustWrapper (configFlags localBuildInfo) (BuildDir $ buildDir localBuildInfo)
+        buildRustWrapper localBuildInfo
         addRustPaths localBuildInfo
         testHook origUserHooks args packageDesc localBuildInfo userHooks testFlags
    }
