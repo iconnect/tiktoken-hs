@@ -86,7 +86,7 @@ buildRustWrapper lbi = withConfiguredProgram confFlags cargoProgram $ \cargo -> 
     , "unstable-options"
     , "-C"
     , "tiktoken-rs-hs-wrapper"
-    , "cbuild"
+    , "cinstall"
     , "--target-dir"
     , pth
     ] `onException` (putStrLn "Make sure to install the rust nightly (\"rustup install nightly\") and the c-cargo applet (\"cargo install cargo-c\").")
