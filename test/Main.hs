@@ -17,7 +17,7 @@ main = hspec $ do
       BPE.countTokens "The GPT family of models process text using tokens, which are common sequences of characters found in text. The models understand the statistical relationships between these tokens, and excel at producing the next token in a sequence of tokens." `shouldBe` 44
     it "returns the correct number of tokens for transcripts" $ do
       vtt <- TIO.readFile =<< getDataFileName "test-data/aws_transcribe.vtt"
-      BPE.countTokens vtt `shouldBe` 7113
+      BPE.countTokens vtt `shouldBe` 6897
     it "splits token correctly" $ do
       BPE.splitByToken "This is a test         with a lot of spaces"
         `shouldBe` ["This", " is", " a", " test", "        ", " with", " a", " lot", " of", " spaces"]

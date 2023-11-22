@@ -14,4 +14,4 @@ haskell-ffi.rev = "2bf292e2e56eac8e9fb0fb2e1450cf4a4bd01274"
 capi = []
 
 [package.metadata.capi.library]
-versioning = false
+versioning = true
