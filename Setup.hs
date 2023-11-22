@@ -20,6 +20,7 @@ import System.Directory
 import System.Environment
 import System.IO
 import qualified Distribution.Types.BuildInfo.Lens as L
+import qualified Data.Text as T
 
 cargoProgram :: Program
 cargoProgram = simpleProgram "cargo"
@@ -52,7 +53,8 @@ withRustPath lbi withPath = do
   withConfiguredProgram confFlags rustcProgram $ \rustc -> do
     (RustTargetHost hostTarget) <- getRustHostTarget rustc
     pth <- rustArtifactsPath lbi
-    withPath $ pth <> "/" <> hostTarget <> "/debug"
+    let fullPath = pth <> "/" <> hostTarget <> "/release"
+    withPath fullPath
   where
     confFlags = configFlags lbi
 
@@ -62,6 +64,7 @@ addRustPaths lbi = do
    addToPath "LD_LIBRARY_PATH" rustPath
    addToPath "DYLD_LIBRARY_PATH" rustPath
    addToPath "PKG_CONFIG_PATH" rustPath
+   addToPath "C_INCLUDE_PATH" rustPath
   where
     addToPath :: String -> String -> IO ()
     addToPath pathVar path = do
@@ -73,7 +76,23 @@ addRustPaths lbi = do
 rustArtifactsPath :: LocalBuildInfo -> IO FilePath
 rustArtifactsPath lbi = do
   absoluteBuildDir <- canonicalizePath (buildDir lbi)
-  pure $ absoluteBuildDir <> "/rust"
+  -- Gruesome hack: once we acquire the 'hostTarget', this
+  -- can either be something like 'dist-newstyle/...' if
+  -- the library is installed directly /or/ if this is a
+  -- transitive dependency, this is installed by cabal
+  -- in something like 'src/tmp-XXX' by cabal, which we
+  -- want to avoid for the rust artifacts as that would be
+  -- nuked by cabal once the installation finishes.
+  -- Hopefully there is a better way!
+  let fullPath = absoluteBuildDir <> "/rust"
+  let pth' = case T.breakOn "/tmp/src" (T.pack fullPath) of
+               (fstP, sndP)
+                 | (tmpSrc, rst) <- T.breakOn "/tiktoken" sndP
+                 , "tmp" `T.isInfixOf` tmpSrc && "src" `T.isInfixOf` tmpSrc
+                 -> fstP <> rst
+                 | otherwise
+                 -> T.pack fullPath
+  pure $ T.unpack pth'
 
 buildRustWrapper :: LocalBuildInfo -> IO ()
 buildRustWrapper lbi = withConfiguredProgram confFlags cargoProgram $ \cargo -> do

@@ -32,6 +32,7 @@ custom-setup
       base < 5
     , Cabal < 3.11
     , directory
+    , text
 
 library
     import:           lang
